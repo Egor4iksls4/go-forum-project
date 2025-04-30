@@ -7,6 +7,7 @@ import (
 
 type AuthRepository interface {
 	GetUserByUsername(username string) (entity.User, error)
+	GetUserByID(id int) (entity.User, error)
 }
 
 type UserRepo struct {
@@ -15,7 +16,7 @@ type UserRepo struct {
 
 func (r *UserRepo) CreateUser(user *entity.User) error {
 	_, err := r.DB.Exec(
-		"INSERT INTO users (username, email, password) VALUES ($1, $2, $3)",
+		"INSERT INTO users (username, password, password) VALUES ($1, $2, $3)",
 		user.Username, user.Password, user.Role,
 	)
 	return err
@@ -23,8 +24,18 @@ func (r *UserRepo) CreateUser(user *entity.User) error {
 
 func (r *UserRepo) GetUserByUsername(username string) (*entity.User, error) {
 	var user entity.User
-	err := r.DB.QueryRow("SELECT id, username, email, password, role FROM users WHERE username = $1", username).
-		Scan(&user.ID, &user.Username, &user.Password, &user.Role)
+	err := r.DB.QueryRow("SELECT username, password, role FROM users WHERE username = $1", username).
+		Scan(&user.Username, &user.Password, &user.Role)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepo) GetUserByID(id int) (*entity.User, error) {
+	var user entity.User
+	err := r.DB.QueryRow("SELECT username, password, role FROM users WHERE id = $1", id).
+		Scan(&user.Username, &user.Password, &user.Role)
 	if err != nil {
 		return nil, err
 	}

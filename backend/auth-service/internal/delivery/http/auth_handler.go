@@ -2,8 +2,10 @@ package http
 
 import (
 	"encoding/json"
-	"go-forum-project/auth-service/internal/usecase"
 	"net/http"
+	"time"
+
+	"go-forum-project/auth-service/internal/usecase"
 )
 
 type AuthHandler struct {
@@ -14,9 +16,11 @@ type loginRequest struct {
 	Password string `json:"password"`
 }
 
-type loginResponse struct {
-	Success bool   `json:"success"`
-	Role    string `json:"role"`
+type tokenResponse struct {
+	AccessToken  string    `json:"access_token"`
+	RefreshToken string    `json:"refresh_token"`
+	AccessExp    time.Time `json:"access_exp"`
+	RefreshExp   time.Time `json:"refresh_exp"`
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -26,14 +30,36 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.AuthUC.Login(req.Username, req.Password)
+	tokens, err := h.AuthUC.Login(req.Username, req.Password)
 	if err != nil {
-		json.NewEncoder(w).Encode(loginResponse{Success: false})
+		http.Error(w, "authentication failed", http.StatusUnauthorized)
 		return
 	}
 
-	json.NewEncoder(w).Encode(loginResponse{
-		Success: true,
-		Role:    user.Role,
+	json.NewEncoder(w).Encode(tokenResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+		AccessExp:    tokens.AccessExpiresAt,
+		RefreshExp:   tokens.RefreshExpiresAt,
+	})
+}
+
+func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
+	refreshToken := r.Header.Get("Authorization")
+	if refreshToken == "" {
+		http.Error(w, "refresh token required", http.StatusUnauthorized)
+	}
+
+	newTokens, err := h.AuthUC.RefreshTokens(refreshToken)
+	if err != nil {
+		http.Error(w, "refresh failed", http.StatusUnauthorized)
+		return
+	}
+
+	json.NewEncoder(w).Encode(tokenResponse{
+		AccessToken:  newTokens.AccessToken,
+		RefreshToken: newTokens.RefreshToken,
+		AccessExp:    newTokens.AccessExpiresAt,
+		RefreshExp:   newTokens.RefreshExpiresAt,
 	})
 }
