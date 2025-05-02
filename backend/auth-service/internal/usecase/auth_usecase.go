@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -59,12 +61,16 @@ func (uc *AuthUseCase) Login(username, password string) (*entity.TokenPair, erro
 		return nil, errors.New("invalid credentials")
 	}
 
-	accessToken, accessExp, err := uc.generateAccessToken(&user)
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return nil, errors.New("invalid credentials")
+	}
+
+	accessToken, accessExp, err := uc.generateAccessToken(user)
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, refreshExp, err := uc.generateRefreshToken(&user)
+	refreshToken, refreshExp, err := uc.generateRefreshToken(user)
 	if err != nil {
 		return nil, err
 	}
@@ -97,4 +103,27 @@ func (uc *AuthUseCase) RefreshTokens(refreshToken string) (*entity.TokenPair, er
 
 func (uc *AuthUseCase) Logout(refreshToken string) error {
 	return uc.tokenRepo.DeleteRefreshToken(context.Background(), refreshToken)
+}
+
+func (uc *AuthUseCase) Register(username, password, role string) error {
+	exists, err := uc.userRepo.UserExists(username)
+	if err != nil {
+		return fmt.Errorf("database error: %w", err)
+	}
+	if exists {
+		return errors.New("username already exists")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	user := &entity.User{
+		Username: username,
+		Password: string(hashedPassword),
+		Role:     role,
+	}
+
+	return uc.userRepo.CreateUser(user)
 }

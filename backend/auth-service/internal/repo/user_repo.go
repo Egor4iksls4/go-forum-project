@@ -6,8 +6,10 @@ import (
 )
 
 type AuthRepository interface {
-	GetUserByUsername(username string) (entity.User, error)
+	CreateUser(user *entity.User) error
+	GetUserByUsername(username string) (*entity.User, error)
 	GetUserByID(id int) (entity.User, error)
+	UserExists(username string) (bool, error)
 }
 
 type UserRepo struct {
@@ -16,7 +18,7 @@ type UserRepo struct {
 
 func (r *UserRepo) CreateUser(user *entity.User) error {
 	_, err := r.DB.Exec(
-		"INSERT INTO users (username, password, password) VALUES ($1, $2, $3)",
+		"INSERT INTO users (username, password, role) VALUES ($1, $2, $3)",
 		user.Username, user.Password, user.Role,
 	)
 	return err
@@ -40,4 +42,13 @@ func (r *UserRepo) GetUserByID(id int) (*entity.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *UserRepo) UserExists(username string) (bool, error) {
+	var exists bool
+	err := r.DB.QueryRow(
+		"SELECT EXISTS(FROM users WHERE username = $1)",
+		username,
+	).Scan(&exists)
+	return exists, err
 }
