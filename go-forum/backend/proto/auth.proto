@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/your-username/go-forum-project/backend/grpc;grpc";
+
+service AuthService {
+  rpc Register (RegisterRequest) returns (RegisterResponse);
+  rpc Login (LoginRequest) returns (TokenResponse);
+  rpc Refresh (RefreshRequest) returns (TokenResponse);
+  rpc Logout (LogoutRequest) returns (LogoutResponse);
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message RefreshRequest {
+  string refresh_token = 1;
+}
+
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+message TokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message LogoutResponse {
+  bool success = 1;
+}
+
+message User {
+  int32 id = 1;
+  string username = 2;
+  string role = 3;
+}
+
+message RegisterRequest {
+  string username = 1;
+  string password = 2;
+  string role = 3;
+}
+
+message RegisterResponse {
+  bool success = 1;
+  string error = 2;
+}

@@ -1,0 +1,164 @@
+/* body {
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+} */
+  
+/* a{
+  text-decoration: none;
+} */
+
+
+/* .content {
+  padding: 1rem;
+  flex: 1;
+}
+
+.login, .news, .profile, .home {
+  text-align: center;
+  margin: 0 auto;
+}
+.login{
+  width: 60%;
+}
+.news{
+  width: 90%;
+}
+
+.home p{
+  text-align: center;
+  margin: 0 auto;
+  max-width: 600px;
+}
+.profile{
+  text-align: center;
+}
+
+.joke {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh; 
+  font-family: fantasy;
+  font-weight: bold;
+  text-align: center;
+  margin: 0 auto;
+  max-width: 600px;
+}
+
+.login form, .add-news {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.login form div, .add-news div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.add-class{
+  position: fixed;
+  background: rgba(0,0,0,0.7);
+  left: 0;
+  top: 0; 
+  right: 0;
+  bottom: 0;
+  width: 100%; 
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.add-news{
+  background: white;
+  margin: 0 auto;
+  padding: 30px;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 700px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+input, textarea {
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  background-color: #333;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #555;
+}
+
+.error {
+  color: red;
+}
+
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+  text-decoration: none;
+  margin: 10px;
+  width: 50%;
+}
+
+.news-item {
+  border: 1px solid #ddd;
+  padding: 1rem;
+  border-radius: 4px;
+  color: black;
+  text-decoration: none;
+}
+
+.news-item button {
+  margin-top: 0.5rem;
+}
+.logout-button {
+  font-size: 1rem;
+}
+
+.logout-button:hover {
+  color: red;
+  background-color: #333;
+}
+
+.date{
+  margin-right: 0.5em ;
+}
+.bigNumber{
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  font-size: xx-large;
+  text-align: center;
+  display: none;
+}
+.addButton{
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 10px 0
+}
+.closeButton{
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: #666
+} */

@@ -1,0 +1,23 @@
+.box {
+    padding: 20px;
+}
+
+.form-style {
+    max-width: 300px;
+}
+
+.input-style {
+    margin: 5px 0;
+}
+
+.button-style {
+    margin-top: 10px;
+    background-color: lightgreen;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.error {
+    color: red;
+}

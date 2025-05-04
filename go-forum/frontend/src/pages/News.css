@@ -1,0 +1,131 @@
+.news-main{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #000610;
+    color: white;
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+}
+
+.news-header{
+    margin: 20px 0;
+}
+
+.add-button{
+    padding: 0.5rem 1rem;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background-color 0.3s;
+}
+
+.add-button:hover {
+    background-color: #555;
+}
+
+.add-news-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.add-news{
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+    color: black;
+}
+
+.form-style {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.input-style {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.textarea-style {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+    min-height: 150px;
+    resize: vertical;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.form-buttons button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.form-buttons button[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.cancel-button {
+    background-color: #f44336;
+    color: white;
+}
+
+.news-list {
+    width: 100%;
+    max-width: 800px;
+}
+
+.news-items {
+    border: 1px solid #444;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    background-color: #1a1a1a;
+}
+
+.news-items form input{
+    border-radius: 4px;
+    width: 80%;
+    margin-bottom: 10px;
+}
+
+.news-items form textarea{
+    border-radius: 4px;
+    width: 80%;
+    margin-bottom: 10px;
+}
+
+.redact-style {
+    margin-right: 10px;
+}
+
+.redact-buttons button{
+    margin-right: 10px;
+}
