@@ -8,12 +8,16 @@ import (
 type AuthRepository interface {
 	CreateUser(user *entity.User) error
 	GetUserByUsername(username string) (*entity.User, error)
-	GetUserByID(id int) (entity.User, error)
+	GetUserByID(id int) (*entity.User, error)
 	UserExists(username string) (bool, error)
 }
 
 type UserRepo struct {
 	DB *sql.DB
+}
+
+func NewUserRepo(db *sql.DB) *UserRepo {
+	return &UserRepo{DB: db}
 }
 
 func (r *UserRepo) CreateUser(user *entity.User) error {
@@ -26,8 +30,8 @@ func (r *UserRepo) CreateUser(user *entity.User) error {
 
 func (r *UserRepo) GetUserByUsername(username string) (*entity.User, error) {
 	var user entity.User
-	err := r.DB.QueryRow("SELECT username, password, role FROM users WHERE username = $1", username).
-		Scan(&user.Username, &user.Password, &user.Role)
+	err := r.DB.QueryRow("SELECT id, username, password, role FROM users WHERE username = $1", username).
+		Scan(&user.ID, &user.Username, &user.Password, &user.Role)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +51,7 @@ func (r *UserRepo) GetUserByID(id int) (*entity.User, error) {
 func (r *UserRepo) UserExists(username string) (bool, error) {
 	var exists bool
 	err := r.DB.QueryRow(
-		"SELECT EXISTS(FROM users WHERE username = $1)",
+		"SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)",
 		username,
 	).Scan(&exists)
 	return exists, err

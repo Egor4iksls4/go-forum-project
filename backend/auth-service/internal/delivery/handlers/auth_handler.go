@@ -34,6 +34,7 @@ func (h *AuthHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*p
 func (h *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.TokenResponse, error) {
 	tokens, err := h.uc.Login(req.Username, req.Password)
 	if err != nil {
+		log.Printf("User not found: %v", err)
 		return nil, status.Error(codes.Unauthenticated, "invalid credentials")
 	}
 

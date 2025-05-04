@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -48,8 +49,12 @@ func (uc *AuthUseCase) generateRefreshToken(user *entity.User) (string, time.Tim
 	rawToken := sha256.Sum256([]byte(user.Username + time.Now().String() + uc.secretKey))
 	token := hex.EncodeToString(rawToken[:])
 
+	if user.ID == 0 {
+		return "", time.Time{}, errors.New("invalid user ID")
+	}
+
 	if err := uc.tokenRepo.CreateRefreshToken(context.Background(), user.ID, token, expiresAt); err != nil {
-		return "", time.Time{}, err
+		return "", time.Time{}, fmt.Errorf("failed to create refresh token: %w", err)
 	}
 
 	return token, expiresAt, nil
@@ -57,7 +62,7 @@ func (uc *AuthUseCase) generateRefreshToken(user *entity.User) (string, time.Tim
 
 func (uc *AuthUseCase) Login(username, password string) (*entity.TokenPair, error) {
 	user, err := uc.userRepo.GetUserByUsername(username)
-	if err != nil || user.Password != password {
+	if err != nil {
 		return nil, errors.New("invalid credentials")
 	}
 
@@ -102,7 +107,9 @@ func (uc *AuthUseCase) RefreshTokens(refreshToken string) (*entity.TokenPair, er
 }
 
 func (uc *AuthUseCase) Logout(refreshToken string) error {
-	return uc.tokenRepo.DeleteRefreshToken(context.Background(), refreshToken)
+	tokenHash := sha256.Sum256([]byte(refreshToken))
+	log.Printf("Deleting token hash: %s", hex.EncodeToString(tokenHash[:]))
+	return uc.tokenRepo.DeleteRefreshToken(context.Background(), hex.EncodeToString(tokenHash[:]))
 }
 
 func (uc *AuthUseCase) Register(username, password, role string) error {

@@ -1,4 +1,4 @@
-package migrator
+package main
 
 import (
 	"database/sql"
@@ -21,7 +21,7 @@ func main() {
 
 	flag.StringVar(&action, "action", "up", "Миграция: up, down, force, version")
 	flag.IntVar(&steps, "steps", 0, "Количество шагов (для up/down)")
-	flag.StringVar(&dbConnStr, "db", "postgres://user:pass@localhost:5050/dbname?sslmode=disable",
+	flag.StringVar(&dbConnStr, "db", "postgres://postgres:Qq1234567@localhost:5050/auth_db?sslmode=disable",
 		"Строка подключения к БД")
 	flag.Parse()
 
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"C:/Users/Egor/Desktop/go-forum/backend/auth-service/migrations",
+		"file://C:/Users/Egor/Desktop/go-forum/backend/auth-service/migrations",
 		"postgres", driver,
 	)
 	if err != nil {
