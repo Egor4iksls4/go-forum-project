@@ -2,6 +2,7 @@ package repo
 
 import (
 	"database/sql"
+
 	"go-forum-project/auth-service/internal/entity"
 )
 

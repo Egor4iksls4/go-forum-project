@@ -6,13 +6,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"go-forum-project/auth-service/internal/entity"
 	"go-forum-project/auth-service/internal/repo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthUseCase struct {

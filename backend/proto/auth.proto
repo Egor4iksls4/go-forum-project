@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "github.com/your-username/go-forum-project/backend/grpc;grpc";
+option go_package = "github.com/slsi14/go-forum-project/backend/grpc;grpc";
 
 service AuthService {
   rpc Register (RegisterRequest) returns (RegisterResponse);

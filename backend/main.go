@@ -2,10 +2,10 @@ package main
 
 import (
 	"database/sql"
+	"go-forum-project/backend/auth-service/cmd/app"
 	"log"
 
 	_ "github.com/lib/pq"
-	"go-forum-project/auth-service/cmd/app"
 )
 
 func main() {

@@ -3,8 +3,9 @@ package repo
 import (
 	"context"
 	"database/sql"
-	"go-forum-project/auth-service/internal/entity"
 	"time"
+
+	"go-forum-project/auth-service/internal/entity"
 )
 
 type TokenRepository interface {
