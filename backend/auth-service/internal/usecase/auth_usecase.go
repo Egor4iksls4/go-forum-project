@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"go-forum-project/auth-service/internal/config"
 	"go-forum-project/auth-service/internal/entity"
 	"go-forum-project/auth-service/internal/repo"
 	"golang.org/x/crypto/bcrypt"
@@ -30,7 +31,12 @@ func NewAuthUseCase(ur repo.AuthRepository, tr repo.TokenRepository, secretKey s
 }
 
 func (uc *AuthUseCase) generateAccessToken(user *entity.User) (string, time.Time, error) {
-	expiresAt := time.Now().Add(15 * time.Minute)
+	cfg, err := config.LoadConfig("auth-service/internal/config/config.yaml")
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	expiresAt := time.Now().Add(cfg.Security.AccessTokenTTL)
 
 	claims := jwt.MapClaims{
 		"user_id": user.ID,
@@ -44,7 +50,12 @@ func (uc *AuthUseCase) generateAccessToken(user *entity.User) (string, time.Time
 }
 
 func (uc *AuthUseCase) generateRefreshToken(user *entity.User) (string, time.Time, error) {
-	expiresAt := time.Now().Add(30 * 24 * time.Hour)
+	cfg, err := config.LoadConfig("auth-service/internal/config/config.yaml")
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	expiresAt := time.Now().Add(cfg.Security.RefreshTokenTTL)
 
 	rawToken := sha256.Sum256([]byte(user.Username + time.Now().String() + uc.secretKey))
 	token := hex.EncodeToString(rawToken[:])
@@ -106,13 +117,21 @@ func (uc *AuthUseCase) RefreshTokens(refreshToken string) (*entity.TokenPair, er
 	return uc.Login(user.Username, user.Password)
 }
 
-func (uc *AuthUseCase) Logout(refreshToken string) error {
-	tokenHash := sha256.Sum256([]byte(refreshToken))
-	log.Printf("Deleting token hash: %s", hex.EncodeToString(tokenHash[:]))
-	return uc.tokenRepo.DeleteRefreshToken(context.Background(), hex.EncodeToString(tokenHash[:]))
+func (uc *AuthUseCase) Logout(ctx context.Context) error {
+	refreshToken, ok := ctx.Value("refreshToken").(string)
+	if !ok || refreshToken == "" {
+		return errors.New("refresh token not found in context")
+	}
+
+	log.Printf("Deleting refresh token: %s", refreshToken)
+	if err := uc.tokenRepo.DeleteRefreshToken(ctx, refreshToken); err != nil {
+		return fmt.Errorf("failed to delete refresh token: %w", err)
+	}
+
+	return nil
 }
 
-func (uc *AuthUseCase) Register(username, password, role string) error {
+func (uc *AuthUseCase) Register(username, password string) error {
 	exists, err := uc.userRepo.UserExists(username)
 	if err != nil {
 		return fmt.Errorf("database error: %w", err)
@@ -129,7 +148,7 @@ func (uc *AuthUseCase) Register(username, password, role string) error {
 	user := &entity.User{
 		Username: username,
 		Password: string(hashedPassword),
-		Role:     role,
+		Role:     "user",
 	}
 
 	return uc.userRepo.CreateUser(user)

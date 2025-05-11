@@ -10,22 +10,25 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
+	"go-forum-project/auth-service/internal/config"
 )
 
 func main() {
 	var (
-		action    string
-		steps     int
-		dbConnStr string
+		action     string
+		steps      int
+		configPath string
 	)
 
 	flag.StringVar(&action, "action", "up", "Миграция: up, down, force, version")
 	flag.IntVar(&steps, "steps", 0, "Количество шагов (для up/down)")
-	flag.StringVar(&dbConnStr, "db", "postgres://postgres:Qq1234567@localhost:5050/auth_db?sslmode=disable",
-		"Строка подключения к БД")
+	flag.StringVar(&configPath, "config", "auth-service/internal/config/config.yaml",
+		"Путь к конфигурационному файлу")
 	flag.Parse()
 
-	db, err := sql.Open("postgres", dbConnStr)
+	cfg, err := config.LoadConfig(configPath)
+
+	db, err := sql.Open("postgres", cfg.Database.GetConnectionString())
 	if err != nil {
 		log.Fatal(err)
 	}

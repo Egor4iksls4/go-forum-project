@@ -1,0 +1,16 @@
+server:
+  grpc_port: 50051
+  grpc_gateway_port: 8080
+
+database:
+  host: "localhost"
+  port: 5050
+  user: "postgres"
+  password: "Qq1234567"
+  name: "auth_db"
+  ssl_mode: "disable"
+
+security:
+  secret_key: "secret-key"
+  access_token_ttl: "15m"
+  refresh_token_ttl: "720h"

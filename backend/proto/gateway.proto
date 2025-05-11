@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package gateway;
+
+import "google/protobuf/empty.proto";
+
+service GatewayService {
+  rpc Ping (google.protobuf.Empty) returns (PingResponse);
+}
+
+message PingResponse {
+  string status = 1;
+}
+
+message AuthContext {
+  int32 user_id = 1;
+  string username = 2;
+  string role = 3;
+  string service = 4;
+}
+
+message GatewayError {
+  int32 code = 1;
+  string message = 2;
+  repeated string details = 3;
+}

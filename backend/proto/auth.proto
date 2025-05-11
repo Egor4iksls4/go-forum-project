@@ -1,14 +1,38 @@
 syntax = "proto3";
 
 package auth;
+option go_package = "./;grpc";
 
-option go_package = "github.com/slsi14/go-forum-project/backend/grpc;grpc";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
 
 service AuthService {
-  rpc Register (RegisterRequest) returns (RegisterResponse);
-  rpc Login (LoginRequest) returns (TokenResponse);
-  rpc Refresh (RefreshRequest) returns (TokenResponse);
-  rpc Logout (LogoutRequest) returns (LogoutResponse);
+  rpc Register (RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/auth/register"
+      body: "*"
+    };
+  }
+
+  rpc Login (LoginRequest) returns (TokenResponse) {
+    option (google.api.http) = {
+      post: "/auth/login"
+      body: "*"
+    };
+  }
+
+  rpc Logout (LogoutRequest) returns (LogoutResponse) {
+    option (google.api.http) = {
+      post: "/auth/logout"
+      body: "*"
+    };
+  }
+
+  rpc Refresh (google.protobuf.Empty) returns (TokenResponse) {
+    option (google.api.http) = {
+      get: "/auth/refresh"
+    };
+  }
 }
 
 message LoginRequest {
@@ -17,10 +41,6 @@ message LoginRequest {
 }
 
 message RefreshRequest {
-  string refresh_token = 1;
-}
-
-message LogoutRequest {
   string refresh_token = 1;
 }
 
@@ -33,6 +53,10 @@ message LogoutResponse {
   bool success = 1;
 }
 
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
 message User {
   int32 id = 1;
   string username = 2;
@@ -42,7 +66,6 @@ message User {
 message RegisterRequest {
   string username = 1;
   string password = 2;
-  string role = 3;
 }
 
 message RegisterResponse {

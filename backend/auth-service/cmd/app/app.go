@@ -7,7 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	_ "github.com/lib/pq"
 	"go-forum-project/auth-service/cmd/app/grpcapp"
+	"go-forum-project/auth-service/internal/config"
 	"go-forum-project/auth-service/internal/repo"
 	"go-forum-project/auth-service/internal/usecase"
 )
@@ -16,13 +18,22 @@ type App struct {
 	GRPCApp *grpcapp.App
 }
 
-func NewApp(db *sql.DB) *App {
+func NewApp(cfg *config.Config) *App {
+	db, err := sql.Open("postgres", cfg.Database.GetConnectionString())
+	if err != nil {
+		log.Fatalf("failed to connect to database: %v", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		log.Fatalf("failed to ping database: %v", err)
+	}
+
 	userRepo := repo.NewUserRepo(db)
 	tokenRepo := repo.NewTokenRepo(db)
 
-	authUC := usecase.NewAuthUseCase(userRepo, tokenRepo, "secret-key")
+	authUC := usecase.NewAuthUseCase(userRepo, tokenRepo, cfg.Security.SecretKey)
 
-	gRPCApp := grpcapp.NewGRPCApp(50051, authUC)
+	gRPCApp := grpcapp.NewGRPCApp(cfg.Server.GRPCPort, authUC)
 
 	return &App{GRPCApp: gRPCApp}
 }

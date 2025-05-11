@@ -3,6 +3,8 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"log"
 	"time"
 
 	"go-forum-project/auth-service/internal/entity"
@@ -43,8 +45,19 @@ func (r *TokenRepo) FindRefreshToken(ctx context.Context, tokenHash string) (*en
 }
 
 func (r *TokenRepo) DeleteRefreshToken(ctx context.Context, tokenHash string) error {
-	_, err := r.Db.ExecContext(ctx,
+	result, err := r.Db.ExecContext(ctx,
 		"DELETE FROM refresh_tokens WHERE token_hash = $1",
-		tokenHash)
-	return err
+		tokenHash,
+	)
+	if err != nil {
+		log.Printf("Delete query failed: %v", err)
+		return err
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("token not found")
+	}
+	return nil
 }
