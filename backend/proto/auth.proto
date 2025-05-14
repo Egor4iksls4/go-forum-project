@@ -4,7 +4,6 @@ package auth;
 option go_package = "./;grpc";
 
 import "google/api/annotations.proto";
-import "google/protobuf/empty.proto";
 
 service AuthService {
   rpc Register (RegisterRequest) returns (RegisterResponse) {
@@ -28,11 +27,13 @@ service AuthService {
     };
   }
 
-  rpc Refresh (google.protobuf.Empty) returns (TokenResponse) {
+  rpc Refresh (RefreshRequest) returns (TokenResponse) {
     option (google.api.http) = {
       get: "/auth/refresh"
     };
   }
+
+  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
 }
 
 message LoginRequest {
@@ -57,12 +58,6 @@ message LogoutRequest {
   string refresh_token = 1;
 }
 
-message User {
-  int32 id = 1;
-  string username = 2;
-  string role = 3;
-}
-
 message RegisterRequest {
   string username = 1;
   string password = 2;
@@ -71,4 +66,13 @@ message RegisterRequest {
 message RegisterResponse {
   bool success = 1;
   string error = 2;
+}
+
+message ValidateTokenRequest {
+  string access_token = 1;
+}
+
+message ValidateTokenResponse {
+  string username = 1;
+  bool valid = 2;
 }

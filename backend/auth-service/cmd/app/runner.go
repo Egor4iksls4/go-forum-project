@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	auth "go-forum-project/proto/gRPC"
 	"log"
 	"net/http"
 	"sync"
@@ -12,7 +13,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"go-forum-project/auth-service/internal/config"
-	auth "go-forum-project/auth-service/internal/delivery/gRPC"
 )
 
 func RunAuthApp() {

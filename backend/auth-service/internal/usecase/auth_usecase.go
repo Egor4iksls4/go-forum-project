@@ -99,24 +99,6 @@ func (uc *AuthUseCase) Login(username, password string) (*entity.TokenPair, erro
 	}, nil
 }
 
-func (uc *AuthUseCase) RefreshTokens(refreshToken string) (*entity.TokenPair, error) {
-	storedToken, err := uc.tokenRepo.FindRefreshToken(context.Background(), refreshToken)
-	if err != nil {
-		return nil, errors.New("invalid refresh token")
-	}
-
-	user, err := uc.userRepo.GetUserByID(storedToken.UserID)
-	if err != nil {
-		return nil, errors.New("user not found")
-	}
-
-	if err := uc.tokenRepo.DeleteRefreshToken(context.Background(), refreshToken); err != nil {
-		return nil, err
-	}
-
-	return uc.Login(user.Username, user.Password)
-}
-
 func (uc *AuthUseCase) Logout(ctx context.Context) error {
 	refreshToken, ok := ctx.Value("refreshToken").(string)
 	if !ok || refreshToken == "" {
@@ -152,4 +134,56 @@ func (uc *AuthUseCase) Register(username, password string) error {
 	}
 
 	return uc.userRepo.CreateUser(user)
+}
+
+func (uc *AuthUseCase) RefreshTokens(ctx context.Context, refreshToken string) (*entity.TokenPair, error) {
+	storedToken, err := uc.tokenRepo.FindRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return nil, errors.New("refresh token not found")
+	}
+
+	if time.Now().After(storedToken.ExpiresAt) {
+		_ = uc.tokenRepo.DeleteRefreshToken(ctx, refreshToken)
+		return nil, errors.New("refresh token expired")
+	}
+
+	user, err := uc.userRepo.GetUserByID(storedToken.UserID)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	if err := uc.tokenRepo.DeleteRefreshToken(ctx, refreshToken); err != nil {
+		return nil, err
+	}
+
+	return uc.Login(user.Username, user.Password)
+}
+
+func (uc *AuthUseCase) ValidateToken(ctx context.Context, accessToken string) (string, bool, error) {
+	token, _, err := new(jwt.Parser).ParseUnverified(accessToken, jwt.MapClaims{})
+	if err != nil {
+		return "", false, errors.New("invalid token format")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", false, errors.New("invalid token claims")
+	}
+
+	// Проверяем username в claims
+	username, ok := claims["username"].(string)
+	if !ok || username == "" {
+		return "", false, errors.New("username not found in token")
+	}
+
+	// Проверяем expiration вручную
+	exp, ok := claims["exp"].(float64)
+	if !ok {
+		return "", false, errors.New("expiration not found in token")
+	}
+
+	expirationTime := time.Unix(int64(exp), 0)
+	isExpired := time.Now().After(expirationTime)
+
+	return username, !isExpired, nil
 }

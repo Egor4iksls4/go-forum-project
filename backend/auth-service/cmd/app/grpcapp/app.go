@@ -2,10 +2,10 @@ package grpcapp
 
 import (
 	"fmt"
+	pb "go-forum-project/proto/gRPC"
 	"log"
 	"net"
 
-	pb "go-forum-project/auth-service/internal/delivery/gRPC"
 	"go-forum-project/auth-service/internal/delivery/handlers"
 	"go-forum-project/auth-service/internal/usecase"
 	"google.golang.org/grpc"

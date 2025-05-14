@@ -2,18 +2,11 @@ package handlers
 
 import (
 	"context"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/protobuf/types/known/emptypb"
-	"log"
-	"net/http"
-	"strings"
-	"time"
-
-	grpc "go-forum-project/auth-service/internal/delivery/gRPC"
 	"go-forum-project/auth-service/internal/usecase"
-	g "google.golang.org/grpc"
+	grpc "go-forum-project/proto/gRPC"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"log"
 )
 
 type AuthHandler struct {
@@ -65,53 +58,34 @@ func (h *AuthHandler) Logout(ctx context.Context, req *grpc.LogoutRequest) (*grp
 	return &grpc.LogoutResponse{Success: true}, nil
 }
 
-func (h *AuthHandler) Refresh(ctx context.Context, _ *emptypb.Empty) (*grpc.TokenResponse, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil, status.Error(codes.Unauthenticated, "metadata not found")
-	}
-
-	cookies := md.Get("cookie")
-	var refreshToken string
-
-	for _, c := range cookies {
-		if strings.HasPrefix(c, "refresh_token=") {
-			parts := strings.SplitN(c, "=", 2)
-			if len(parts) == 2 {
-				refreshToken = parts[1]
-				break
-			}
-		}
-	}
-
-	if refreshToken == "" {
-		return nil, status.Error(codes.Unauthenticated, "refresh token not provided")
-	}
-
-	tokens, err := h.uc.RefreshTokens(refreshToken)
+func (h *AuthHandler) Refresh(ctx context.Context, req *grpc.RefreshRequest) (*grpc.TokenResponse, error) {
+	newTokens, err := h.uc.RefreshTokens(ctx, req.RefreshToken)
 	if err != nil {
+		_ = h.uc.Logout(ctx)
 		log.Printf("Refresh failed: %v", err)
-		return nil, status.Error(codes.Unauthenticated, "invalid refresh token")
-	}
-
-	if _, ok := metadata.FromIncomingContext(ctx); ok {
-		cookie := &http.Cookie{
-			Name:     "refresh_token",
-			Value:    tokens.RefreshToken,
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteLaxMode,
-			MaxAge:   int(time.Until(tokens.RefreshExpiresAt).Seconds()),
-		}
-
-		header := metadata.Pairs("Set-Cookie", cookie.String())
-		if err := g.SetHeader(ctx, header); err != nil {
-			log.Printf("Failed to set gRPC header: %v", err)
-		}
+		return nil, status.Error(codes.Unauthenticated, "session expired, please login again")
 	}
 
 	return &grpc.TokenResponse{
-		AccessToken: tokens.AccessToken,
+		AccessToken:  newTokens.AccessToken,
+		RefreshToken: newTokens.RefreshToken,
 	}, nil
+}
+
+func (h *AuthHandler) ValidateToken(ctx context.Context, req *grpc.ValidateTokenRequest) (*grpc.ValidateTokenResponse,
+	error) {
+	username, isValid, err := h.uc.ValidateToken(ctx, req.AccessToken)
+	if err != nil {
+		log.Printf("Token validation failed: %v", err)
+		return nil, status.Error(codes.Unauthenticated, "invalid token")
+	}
+
+	if isValid {
+		return &grpc.ValidateTokenResponse{
+			Username: username,
+			Valid:    true,
+		}, nil
+	}
+
+	return nil, nil
 }

@@ -1,0 +1,14 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="GoDfaErrorMayBeNotNil" enabled="true" level="WARNING" enabled_by_default="true">
+      <functions>
+        <function importPath="go-forum-project/auth-service/internal/config" name="LoadConfig" />
+        <function importPath="go-forum-project/forum-service/internal/config" name="LoadConfig" />
+      </functions>
+      <methods>
+        <method importPath="database/sql" receiver="*DB" name="ExecContext" />
+      </methods>
+    </inspection_tool>
+  </profile>
+</component>

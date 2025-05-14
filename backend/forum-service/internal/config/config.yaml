@@ -1,0 +1,13 @@
+server:
+  port: 8081
+
+auth_service:
+  address: "localhost:50051"
+
+database:
+  host: "localhost"
+  port: 5050
+  user: "postgres"
+  password: "Qq1234567"
+  name: "forum_db"
+  ssl_mode: "disable"

@@ -6,4 +6,11 @@ tasks:
       - "gen"
     desc: "Generate code from proto"
     cmds:
-      - "protoc -I ./proto -I ./proto/google/api --go_out=./auth-service/internal/delivery/gRPC --go_opt=paths=source_relative --go-grpc_out=./auth-service/internal/delivery/gRPC --go-grpc_opt=paths=source_relative --grpc-gateway_out=./auth-service/internal/delivery/gRPC --grpc-gateway_opt=paths=source_relative ./proto/auth.proto"
+      - "protoc -I ./proto -I ./proto/google/api --go_out=./proto/gRPC --go_opt=paths=source_relative --go-grpc_out=./proto/gRPC --go-grpc_opt=paths=source_relative --grpc-gateway_out=./proto/gRPC --grpc-gateway_opt=paths=source_relative ./proto/auth.proto"
+
+  migrate:
+    aliases:
+      - "fmu"
+    desc: "Rum up forum migrations"
+    cmds:
+      - "go run ./forum-service/cmd/migrator/main.go -action up"
