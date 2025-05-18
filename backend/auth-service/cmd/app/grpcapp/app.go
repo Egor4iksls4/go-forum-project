@@ -16,7 +16,7 @@ type App struct {
 	port       int
 }
 
-func NewGRPCApp(port int, authUC *usecase.AuthUseCase) *App {
+func NewGRPCApp(port int, authUC usecase.AuthUseCase) *App {
 	gRPCServer := grpc.NewServer()
 
 	authHandler := handlers.NewAuthHandler(authUC)

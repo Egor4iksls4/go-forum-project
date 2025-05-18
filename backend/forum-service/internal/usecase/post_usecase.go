@@ -7,15 +7,23 @@ import (
 	"go-forum-project/forum-service/internal/repo"
 )
 
-type PostUseCase struct {
+type PostUseCase interface {
+	CreatePost(ctx context.Context, title, content, author string) error
+	GetAllPosts(ctx context.Context) ([]*entity.Post, error)
+	GetPostById(ctx context.Context, id int) (*entity.Post, error)
+	UpdatePost(ctx context.Context, id int, title, content string) error
+	DeletePost(ctx context.Context, id int) error
+}
+
+type postUseCase struct {
 	repo repo.PostRepository
 }
 
-func NewPostUseCase(repo repo.PostRepository) *PostUseCase {
-	return &PostUseCase{repo: repo}
+func NewPostUseCase(repo repo.PostRepository) PostUseCase {
+	return &postUseCase{repo: repo}
 }
 
-func (uc *PostUseCase) CreatePost(ctx context.Context, title, content, author string) error {
+func (uc *postUseCase) CreatePost(ctx context.Context, title, content, author string) error {
 	if len(title) == 0 || len(title) > 100 {
 		return errors.New("title must be between 1 and 100 characters")
 	}
@@ -30,11 +38,15 @@ func (uc *PostUseCase) CreatePost(ctx context.Context, title, content, author st
 	return nil
 }
 
-func (uc *PostUseCase) GetAllPosts(ctx context.Context) ([]*entity.Post, error) {
+func (uc *postUseCase) GetAllPosts(ctx context.Context) ([]*entity.Post, error) {
 	return uc.repo.GetAllPosts(ctx)
 }
 
-func (uc *PostUseCase) UpdatePost(ctx context.Context, id int, title, content string) error {
+func (uc *postUseCase) GetPostById(ctx context.Context, id int) (*entity.Post, error) {
+	return uc.repo.GetPostByID(ctx, id)
+}
+
+func (uc *postUseCase) UpdatePost(ctx context.Context, id int, title, content string) error {
 	if len(title) == 0 || len(title) > 100 {
 		return errors.New("title must be between 1 and 100 characters")
 	}
@@ -45,6 +57,6 @@ func (uc *PostUseCase) UpdatePost(ctx context.Context, id int, title, content st
 	return uc.repo.UpdatePost(ctx, id, title, content)
 }
 
-func (uc *PostUseCase) DeletePost(ctx context.Context, id int) error {
+func (uc *postUseCase) DeletePost(ctx context.Context, id int) error {
 	return uc.repo.DeletePost(ctx, id)
 }

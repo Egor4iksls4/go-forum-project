@@ -11,10 +11,10 @@ import (
 
 type AuthHandler struct {
 	grpc.UnimplementedAuthServiceServer
-	uc *usecase.AuthUseCase
+	uc usecase.AuthUseCase
 }
 
-func NewAuthHandler(uc *usecase.AuthUseCase) *AuthHandler {
+func NewAuthHandler(uc usecase.AuthUseCase) *AuthHandler {
 	return &AuthHandler{uc: uc}
 }
 
@@ -61,9 +61,7 @@ func (h *AuthHandler) Logout(ctx context.Context, req *grpc.LogoutRequest) (*grp
 func (h *AuthHandler) Refresh(ctx context.Context, req *grpc.RefreshRequest) (*grpc.TokenResponse, error) {
 	newTokens, err := h.uc.RefreshTokens(ctx, req.RefreshToken)
 	if err != nil {
-		_ = h.uc.Logout(ctx)
-		log.Printf("Refresh failed: %v", err)
-		return nil, status.Error(codes.Unauthenticated, "session expired, please login again")
+		return nil, status.Error(codes.Unauthenticated, "refresh failed")
 	}
 
 	return &grpc.TokenResponse{

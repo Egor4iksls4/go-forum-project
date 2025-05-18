@@ -41,8 +41,8 @@ func (r *UserRepo) GetUserByUsername(username string) (*entity.User, error) {
 
 func (r *UserRepo) GetUserByID(id int) (*entity.User, error) {
 	var user entity.User
-	err := r.DB.QueryRow("SELECT username, password, role FROM users WHERE id = $1", id).
-		Scan(&user.Username, &user.Password, &user.Role)
+	err := r.DB.QueryRow("SELECT id, username, password, role FROM users WHERE id = $1", id).
+		Scan(&user.ID, &user.Username, &user.Password, &user.Role)
 	if err != nil {
 		return nil, err
 	}

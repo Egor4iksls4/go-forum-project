@@ -52,7 +52,7 @@ func (h *PostHandler) GetAllPosts(c *gin.Context) {
 }
 
 func (h *PostHandler) DeletePost(c *gin.Context) {
-	_, exists := c.Get("username")
+	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authorized"})
 		return
@@ -61,6 +61,17 @@ func (h *PostHandler) DeletePost(c *gin.Context) {
 	postID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid post ID"})
+		return
+	}
+
+	post, err := h.postUC.GetPostById(c.Request.Context(), postID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
+		return
+	}
+
+	if post.Author != username.(string) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "you can only delete your own posts"})
 		return
 	}
 
@@ -74,7 +85,7 @@ func (h *PostHandler) DeletePost(c *gin.Context) {
 }
 
 func (h *PostHandler) UpdatePost(c *gin.Context) {
-	_, exists := c.Get("username")
+	username, exists := c.Get("username")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authorized"})
 		return
@@ -83,6 +94,17 @@ func (h *PostHandler) UpdatePost(c *gin.Context) {
 	postID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid post ID"})
+		return
+	}
+
+	post, err := h.postUC.GetPostById(c.Request.Context(), postID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
+		return
+	}
+
+	if post.Author != username.(string) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "you can only edit your own posts"})
 		return
 	}
 

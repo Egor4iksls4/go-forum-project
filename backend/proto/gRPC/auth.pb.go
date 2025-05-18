@@ -486,12 +486,12 @@ const file_auth_proto_rawDesc = "" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"I\n" +
 	"\x15ValidateTokenResponse\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x14\n" +
-	"\x05valid\x18\x02 \x01(\bR\x05valid2\x92\x03\n" +
+	"\x05valid\x18\x02 \x01(\bR\x05valid2\x95\x03\n" +
 	"\vAuthService\x12T\n" +
 	"\bRegister\x12\x15.auth.RegisterRequest\x1a\x16.auth.RegisterResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/auth/register\x12H\n" +
 	"\x05Login\x12\x12.auth.LoginRequest\x1a\x13.auth.TokenResponse\"\x16\x82\xd3\xe4\x93\x02\x10:\x01*\"\v/auth/login\x12L\n" +
-	"\x06Logout\x12\x13.auth.LogoutRequest\x1a\x14.auth.LogoutResponse\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/auth/logout\x12K\n" +
-	"\aRefresh\x12\x14.auth.RefreshRequest\x1a\x13.auth.TokenResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/auth/refresh\x12H\n" +
+	"\x06Logout\x12\x13.auth.LogoutRequest\x1a\x14.auth.LogoutResponse\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/auth/logout\x12N\n" +
+	"\aRefresh\x12\x14.auth.RefreshRequest\x1a\x13.auth.TokenResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/auth/refresh\x12H\n" +
 	"\rValidateToken\x12\x1a.auth.ValidateTokenRequest\x1a\x1b.auth.ValidateTokenResponseB\tZ\a./;grpcb\x06proto3"
 
 var (

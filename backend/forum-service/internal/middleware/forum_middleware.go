@@ -15,12 +15,6 @@ func AuthMiddleware(authClient *client.AuthClient) gin.HandlerFunc {
 			return
 		}
 
-		refreshToken := c.GetHeader("X-Refresh-Token")
-		if refreshToken == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Refresh token required"})
-			return
-		}
-
 		username, valid, err := authClient.ValidateToken(c.Request.Context(), accessToken)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token validation error"})
@@ -33,14 +27,26 @@ func AuthMiddleware(authClient *client.AuthClient) gin.HandlerFunc {
 			return
 		}
 
-		_, err = authClient.Refresh(c.Request.Context(), refreshToken)
-		if err != nil {
+		refreshToken := c.GetHeader("X-Refresh-Token")
+		if refreshToken == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error":         "Session expired",
 				"should_logout": true,
 			})
 			return
 		}
+
+		newTokens, err := authClient.Refresh(c.Request.Context(), refreshToken)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error":         "Refresh failed",
+				"should_logout": true,
+			})
+			return
+		}
+
+		c.Header("New-Access-Token", newTokens.AccessToken)
+		c.Header("New-Refresh-Token", newTokens.RefreshToken)
 
 		c.Set("username", username)
 		c.Next()

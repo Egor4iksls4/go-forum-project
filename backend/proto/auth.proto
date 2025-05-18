@@ -29,7 +29,8 @@ service AuthService {
 
   rpc Refresh (RefreshRequest) returns (TokenResponse) {
     option (google.api.http) = {
-      get: "/auth/refresh"
+      post: "/auth/refresh"
+      body: "*"
     };
   }
 
