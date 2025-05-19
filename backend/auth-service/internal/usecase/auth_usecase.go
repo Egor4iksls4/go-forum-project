@@ -205,9 +205,11 @@ func (uc *authUseCase) RefreshTokens(ctx context.Context, refreshToken string) (
 }
 
 func (uc *authUseCase) ValidateToken(ctx context.Context, accessToken string) (string, bool, error) {
-	token, _, err := new(jwt.Parser).ParseUnverified(accessToken, jwt.MapClaims{})
+	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
+		return []byte(uc.secretKey), nil
+	})
 	if err != nil {
-		return "", false, errors.New("invalid token format")
+		return "", false, err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
@@ -221,14 +223,5 @@ func (uc *authUseCase) ValidateToken(ctx context.Context, accessToken string) (s
 		return "", false, errors.New("username not found in token")
 	}
 
-	// Проверяем expiration вручную
-	exp, ok := claims["exp"].(float64)
-	if !ok {
-		return "", false, errors.New("expiration not found in token")
-	}
-
-	expirationTime := time.Unix(int64(exp), 0)
-	isExpired := time.Now().After(expirationTime)
-
-	return username, !isExpired, nil
+	return username, true, nil
 }

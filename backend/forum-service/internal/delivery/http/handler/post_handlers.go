@@ -58,7 +58,7 @@ func (h *PostHandler) DeletePost(c *gin.Context) {
 		return
 	}
 
-	postID, err := strconv.Atoi(c.Param("id"))
+	postID, err := strconv.Atoi(c.Param("postId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid post ID"})
 		return
@@ -91,7 +91,7 @@ func (h *PostHandler) UpdatePost(c *gin.Context) {
 		return
 	}
 
-	postID, err := strconv.Atoi(c.Param("id"))
+	postID, err := strconv.Atoi(c.Param("postId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid post ID"})
 		return
@@ -123,4 +123,20 @@ func (h *PostHandler) UpdatePost(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+}
+
+func (h *PostHandler) GetPostByID(c *gin.Context) {
+	postID, err := strconv.Atoi(c.Param("postId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid post id"})
+		return
+	}
+
+	post, err := h.postUC.GetPostById(c.Request.Context(), postID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, post)
 }

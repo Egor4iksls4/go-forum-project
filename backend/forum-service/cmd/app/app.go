@@ -38,10 +38,14 @@ func RunForumApp() {
 	defer authClient.Close()
 
 	postRepo := repo.NewPostRepo(db)
+	commentRepo := repo.NewCommentRepo(db)
+
 	postUseCase := usecase.NewPostUseCase(postRepo)
+	commentUseCase := usecase.NewCommentUseCase(commentRepo, postRepo)
+
 	authMiddleware := middleware.AuthMiddleware(authClient)
 
-	r := router.NewRouter(postUseCase, authMiddleware)
+	r := router.NewRouter(postUseCase, commentUseCase, authMiddleware)
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),
@@ -52,7 +56,6 @@ func RunForumApp() {
 	}
 
 	done := make(chan error, 1)
-
 	go func() {
 		log.Printf("Listening on port: %d", cfg.Server.Port)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {

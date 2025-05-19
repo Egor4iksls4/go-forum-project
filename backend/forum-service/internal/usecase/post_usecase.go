@@ -7,6 +7,11 @@ import (
 	"go-forum-project/forum-service/internal/repo"
 )
 
+var (
+	ErrLengthContent = errors.New("content must be between 1 and 250 characters")
+	ErrLengthTitle   = errors.New("title must be between 1 and 100 characters")
+)
+
 type PostUseCase interface {
 	CreatePost(ctx context.Context, title, content, author string) error
 	GetAllPosts(ctx context.Context) ([]*entity.Post, error)
@@ -25,10 +30,10 @@ func NewPostUseCase(repo repo.PostRepository) PostUseCase {
 
 func (uc *postUseCase) CreatePost(ctx context.Context, title, content, author string) error {
 	if len(title) == 0 || len(title) > 100 {
-		return errors.New("title must be between 1 and 100 characters")
+		return ErrLengthTitle
 	}
 	if len(content) == 0 || len(content) > 250 {
-		return errors.New("content must be between 1 and 250 characters")
+		return ErrLengthContent
 	}
 
 	if err := uc.repo.CreatePost(ctx, title, content, author); err != nil {
@@ -48,10 +53,10 @@ func (uc *postUseCase) GetPostById(ctx context.Context, id int) (*entity.Post, e
 
 func (uc *postUseCase) UpdatePost(ctx context.Context, id int, title, content string) error {
 	if len(title) == 0 || len(title) > 100 {
-		return errors.New("title must be between 1 and 100 characters")
+		return ErrLengthTitle
 	}
 	if len(content) == 0 || len(content) > 250 {
-		return errors.New("content must be between 1 and 250 characters")
+		return ErrLengthContent
 	}
 
 	return uc.repo.UpdatePost(ctx, id, title, content)

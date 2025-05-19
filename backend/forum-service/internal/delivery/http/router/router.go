@@ -7,7 +7,7 @@ import (
 	"go-forum-project/forum-service/internal/usecase"
 )
 
-func NewRouter(postUC usecase.PostUseCase, authMiddleware gin.HandlerFunc) *gin.Engine {
+func NewRouter(postUC usecase.PostUseCase, commentUC usecase.CommentUseCase, authMiddleware gin.HandlerFunc) *gin.Engine {
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
@@ -19,18 +19,28 @@ func NewRouter(postUC usecase.PostUseCase, authMiddleware gin.HandlerFunc) *gin.
 	}))
 
 	postHandler := handler.NewPostHandler(postUC)
+	commentHandler := handler.NewCommentHandler(commentUC)
+
+	publicGroup := router.Group("/api")
+	{
+		publicGroup.GET("/posts", postHandler.GetAllPosts)
+
+		postGroup := publicGroup.Group("/posts/:postId")
+		{
+			postGroup.GET("", postHandler.GetPostByID)
+			postGroup.GET("/comments", commentHandler.GetCommentsByPostID)
+		}
+	}
 
 	authGroup := router.Group("/api")
 	authGroup.Use(authMiddleware)
 	{
 		authGroup.POST("/posts", postHandler.CreatePost)
-		authGroup.PUT("/posts/:id", postHandler.UpdatePost)
-		authGroup.DELETE("/posts/:id", postHandler.DeletePost)
-	}
+		authGroup.PUT("/posts/:postId", postHandler.UpdatePost)
+		authGroup.DELETE("/posts/:postId", postHandler.DeletePost)
 
-	publicGroup := router.Group("/api")
-	{
-		publicGroup.GET("/posts", postHandler.GetAllPosts)
+		authGroup.POST("/posts/:postId/comments", commentHandler.CreateComment)
+		authGroup.DELETE("/comments/:commentId", commentHandler.DeleteComment) // Единственный маршрут для удаления
 	}
 
 	return router

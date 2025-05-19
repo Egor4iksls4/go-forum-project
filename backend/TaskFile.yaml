@@ -8,9 +8,16 @@ tasks:
     cmds:
       - "protoc -I ./proto -I ./proto/google/api --go_out=./proto/gRPC --go_opt=paths=source_relative --go-grpc_out=./proto/gRPC --go-grpc_opt=paths=source_relative --grpc-gateway_out=./proto/gRPC --grpc-gateway_opt=paths=source_relative ./proto/auth.proto"
 
-  migrate:
+  migrate posts up:
     aliases:
       - "fmu"
     desc: "Rum up forum migrations"
     cmds:
       - "go run ./forum-service/cmd/migrator/main.go -action up"
+
+  migrate posts down:
+    aliases:
+      - "fmd"
+    desc: "Rum up forum migrations"
+    cmds:
+      - "go run ./forum-service/cmd/migrator/main.go -action down"
