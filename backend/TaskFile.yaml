@@ -18,6 +18,20 @@ tasks:
   migrate posts down:
     aliases:
       - "fmd"
-    desc: "Rum up forum migrations"
+    desc: "Rum down forum migrations"
     cmds:
       - "go run ./forum-service/cmd/migrator/main.go -action down"
+
+  migrate chat up:
+    aliases:
+      - "cmu"
+    desc: "Rum up chat migrations"
+    cmds:
+      - "go run ./chat-service/cmd/migrator/main.go -action up"
+
+  migrate chat down:
+    aliases:
+      - "cmd"
+    desc: "Rum down chat migrations"
+    cmds:
+      - "go run ./chat-service/cmd/migrator/main.go -action down"

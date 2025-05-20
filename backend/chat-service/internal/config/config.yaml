@@ -1,0 +1,13 @@
+server:
+  port: 8082
+
+auth_service:
+  address: "localhost:50051"
+
+database:
+  host: "localhost"
+  port: 5050
+  user: "postgres"
+  password: "Qq1234567"
+  name: "chat_db"
+  ssl_mode: "disable"
