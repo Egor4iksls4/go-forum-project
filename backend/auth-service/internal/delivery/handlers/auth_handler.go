@@ -85,5 +85,7 @@ func (h *AuthHandler) ValidateToken(ctx context.Context, req *grpc.ValidateToken
 		}, nil
 	}
 
-	return nil, nil
+	return &grpc.ValidateTokenResponse{
+		Valid: false,
+	}, nil
 }

@@ -17,7 +17,30 @@ func AuthMiddleware(authClient *client.AuthClient) gin.HandlerFunc {
 
 		username, valid, err := authClient.ValidateToken(c.Request.Context(), accessToken)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token validation error"})
+			refreshToken := c.GetHeader("X-Refresh-Token")
+			if refreshToken == "" {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token validation error and no refresh token"})
+				return
+			}
+
+			// Пытаемся обновить токен
+			newTokens, refreshErr := authClient.Refresh(c.Request.Context(), refreshToken)
+			if refreshErr != nil {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Refresh failed"})
+				return
+			}
+
+			c.Header("New-Access-Token", newTokens.AccessToken)
+			c.Header("New-Refresh-Token", newTokens.RefreshToken)
+
+			newUsername, _, validationErr := authClient.ValidateToken(c.Request.Context(), newTokens.AccessToken)
+			if validationErr != nil {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "New token validation failed"})
+				return
+			}
+
+			c.Set("username", newUsername)
+			c.Next()
 			return
 		}
 

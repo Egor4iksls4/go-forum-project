@@ -81,7 +81,7 @@ func (h *PostHandler) DeletePost(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	c.JSON(http.StatusOK, gin.H{"message": "Post deleted successfully"})
 }
 
 func (h *PostHandler) UpdatePost(c *gin.Context) {
@@ -123,6 +123,8 @@ func (h *PostHandler) UpdatePost(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Post updated successfully"})
 }
 
 func (h *PostHandler) GetPostByID(c *gin.Context) {

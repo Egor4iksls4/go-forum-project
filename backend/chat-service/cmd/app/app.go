@@ -7,7 +7,6 @@ import (
 	"go-forum-project/chat-service/internal/client"
 	"go-forum-project/chat-service/internal/config"
 	"go-forum-project/chat-service/internal/delivery/handler"
-	"go-forum-project/chat-service/internal/middleware"
 	"go-forum-project/chat-service/internal/repo"
 	"go-forum-project/chat-service/internal/usecase"
 	"log"
@@ -32,14 +31,11 @@ func RunChat() {
 
 	authClient, err := client.NewAuthClient(context.Background(), cfg)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to create auth client: %v", err)
 	}
 	defer authClient.Close()
 
-	wsAuth := middleware.NewWebSocketAuth(authClient)
-
 	hub := handler.NewHub(messageUC)
-
 	go hub.Run()
 
 	go func() {
@@ -51,7 +47,7 @@ func RunChat() {
 		}
 	}()
 
-	http.Handle("/ws", enableCORS(handler.ServeWs(hub, wsAuth)))
+	http.Handle("/ws", enableCORS(handler.ServeWs(hub, authClient)))
 	http.Handle("/api/messages", enableCORS(handler.GetMessageHandler(messageUC)))
 
 	log.Printf("Server started on : %d", cfg.Server.Port)

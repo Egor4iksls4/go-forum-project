@@ -53,6 +53,7 @@ func (r *MessageRepo) GetAllMessages(ctx context.Context) ([]*entity.Message, er
 			&message.ID,
 			&message.Author,
 			&message.Text,
+			&message.CreatedAt,
 		)
 		if err != nil {
 			return nil, err

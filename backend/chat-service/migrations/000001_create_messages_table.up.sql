@@ -1,6 +1,7 @@
-CREATE TABLE messages (
+CREATE TABLE messages
+(
     id         SERIAL PRIMARY KEY,
-    author     INTEGER                  NOT NULL,
+    author     VARCHAR(255)             NOT NULL,
     text       TEXT                     NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

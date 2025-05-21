@@ -3,8 +3,10 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/gorilla/websocket"
-	"go-forum-project/chat-service/internal/middleware"
+	"go-forum-project/chat-service/internal/client"
 	"go-forum-project/chat-service/internal/usecase"
 	"log"
 	"net/http"
@@ -99,63 +101,91 @@ func (c *Client) readPump() {
 	}()
 
 	c.conn.SetReadLimit(maxMessageSize)
-	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error {
 		c.conn.SetReadDeadline(time.Now().Add(pongWait))
 		return nil
 	})
 
 	for {
-		_, message, err := c.conn.ReadMessage()
+		_, rawMsg, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error: %v", err)
+				log.Printf("WebSocket error: %v", err)
 			}
 			break
 		}
 
-		var msgReq MessageRequest
-		if err := json.Unmarshal(message, &msgReq); err != nil {
-			log.Printf("error unmarshaling message request: %v", err)
-			continue
-		}
+		// Логируем сырое сообщение для отладки
+		log.Printf("Raw message received: %s", string(rawMsg))
 
-		switch msgReq.Action {
-		case "create":
-			var payload CreateMessagePayload
-			if err := json.Unmarshal(msgReq.Payload, &payload); err != nil {
-				log.Printf("error unmarshaling message payload: %v", err)
-				continue
-			}
-
-			if err := c.hub.useCase.CreateMessage(context.Background(), payload.Author, payload.Text); err != nil {
-				log.Printf("error creating message: %v", err)
-				continue
-			}
-
-			c.hub.broadcastMessages()
-
-		case "delete":
-			var payload DeleteMessagePayload
-			if err := json.Unmarshal(msgReq.Payload, &payload); err != nil {
-				log.Printf("error unmarshaling delete payload: %v", err)
-				continue
-			}
-
-			if err := c.hub.useCase.DeleteMessage(context.Background(), payload.ID); err != nil {
-				log.Printf("error deleting message: %v", err)
-				continue
-			}
-
-			c.hub.broadcastMessages()
-
-		case "get_all":
-			c.sendMessages()
-
-		default:
-			log.Printf("unknown action: %s", msgReq.Action)
+		// Обработка сообщения
+		if err := c.handleMessage(rawMsg); err != nil {
+			log.Printf("Error handling message: %v", err)
 		}
 	}
+}
+
+func (c *Client) handleMessage(rawMsg []byte) error {
+	// Базовый парсинг для определения типа сообщения
+	var baseMsg struct {
+		Action  string          `json:"action"`
+		Payload json.RawMessage `json:"payload"`
+	}
+
+	if err := json.Unmarshal(rawMsg, &baseMsg); err != nil {
+		return fmt.Errorf("invalid message format: %v", err)
+	}
+
+	switch baseMsg.Action {
+	case "create":
+		return c.handleCreateMessage(baseMsg.Payload)
+	case "delete":
+		return c.handleDeleteMessage(baseMsg.Payload)
+	case "get_all":
+		c.sendMessages()
+		return nil
+	default:
+		return fmt.Errorf("unknown action: %s", baseMsg.Action)
+	}
+}
+
+func (c *Client) handleCreateMessage(payload json.RawMessage) error {
+	var createMsg struct {
+		Author string `json:"author"`
+		Text   string `json:"text"`
+	}
+
+	if err := json.Unmarshal(payload, &createMsg); err != nil {
+		return fmt.Errorf("invalid create message payload: %v", err)
+	}
+
+	if createMsg.Text == "" {
+		return errors.New("empty message text")
+	}
+
+	if err := c.hub.useCase.CreateMessage(context.Background(), createMsg.Author, createMsg.Text); err != nil {
+		return fmt.Errorf("error creating message: %v", err)
+	}
+
+	c.hub.broadcastMessages()
+	return nil
+}
+
+func (c *Client) handleDeleteMessage(payload json.RawMessage) error {
+	var deleteMsg struct {
+		ID int `json:"id"`
+	}
+
+	if err := json.Unmarshal(payload, &deleteMsg); err != nil {
+		return fmt.Errorf("invalid delete message payload: %v", err)
+	}
+
+	if err := c.hub.useCase.DeleteMessage(context.Background(), deleteMsg.ID); err != nil {
+		return fmt.Errorf("error deleting message: %v", err)
+	}
+
+	c.hub.broadcastMessages()
+	return nil
 }
 
 func (h *Hub) broadcastMessages() {
@@ -165,7 +195,12 @@ func (h *Hub) broadcastMessages() {
 		return
 	}
 
-	msgBytes, err := json.Marshal(messages)
+	msgToSend := map[string]interface{}{
+		"action":  "broadcast",
+		"payload": messages,
+	}
+
+	msgBytes, err := json.Marshal(msgToSend)
 	if err != nil {
 		log.Printf("error marshaling messages: %v", err)
 		return
@@ -224,18 +259,22 @@ func (c *Client) writePump() {
 	}
 }
 
-func ServeWs(hub *Hub, authMiddleware *middleware.WebSocketAuth) http.HandlerFunc {
-	return authMiddleware.Middleware(func(w http.ResponseWriter, r *http.Request) {
-		conn, err := hub.upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			log.Println("WebSocket upgrade error:", err)
+func ServeWs(hub *Hub, authClient *client.AuthClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		accessToken := r.URL.Query().Get("accessToken")
+
+		log.Printf("Access token: %s", accessToken)
+
+		username, valid, err := authClient.ValidateToken(r.Context(), accessToken)
+		if err != nil || !valid {
+			log.Printf("Token validation error: %v", err)
+			respondWithUnauthorized(w, r, hub.upgrader)
 			return
 		}
 
-		username, ok := r.Context().Value("username").(string)
-		if !ok || username == "" {
-			conn.WriteMessage(websocket.CloseMessage, []byte("Unauthorized"))
-			conn.Close()
+		conn, err := hub.upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Println("WebSocket upgrade error:", err)
 			return
 		}
 
@@ -246,11 +285,21 @@ func ServeWs(hub *Hub, authMiddleware *middleware.WebSocketAuth) http.HandlerFun
 			username: username,
 		}
 
-		client.hub.register <- client
-
+		hub.register <- client
 		go client.writePump()
 		go client.readPump()
-	})
+	}
+}
+
+func respondWithUnauthorized(w http.ResponseWriter, r *http.Request, upgrader *websocket.Upgrader) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	conn.WriteMessage(websocket.CloseMessage,
+		websocket.FormatCloseMessage(4001, "Unauthorized"))
+	conn.Close()
 }
 
 func GetMessageHandler(uc usecase.MessageUseCase) http.HandlerFunc {

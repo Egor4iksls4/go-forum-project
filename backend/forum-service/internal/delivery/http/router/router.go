@@ -14,7 +14,7 @@ func NewRouter(postUC usecase.PostUseCase, commentUC usecase.CommentUseCase, aut
 		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Content-Type", "Authorization", "X-Refresh-Token"},
-		ExposeHeaders:    []string{"Content-Length"},
+		ExposeHeaders:    []string{"Content-Length", "New-Access-Token", "New-Refresh-Token"}, // Добавлено
 		AllowCredentials: true,
 	}))
 

@@ -12,5 +12,5 @@ database:
 
 security:
   secret_key: "secret-key"
-  access_token_ttl: "15m"
+  access_token_ttl: "3s"
   refresh_token_ttl: "720h"
